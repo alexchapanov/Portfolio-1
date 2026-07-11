@@ -134,7 +134,7 @@ bool PlayerSeen(const vector<string>& level)
     return false;
 }
 
-void MoveGuards(vector<string>& level)
+bool MoveGuards(vector<string>& level)
 {
     vector<Guard> guards = FindGuards(level);
 
@@ -151,10 +151,12 @@ void MoveGuards(vector<string>& level)
         case 'v': newRow++; break;
         }
 
+        // Check if the guard is blocked
         bool blocked =
             level[newRow][newCol] != ' ' &&
             level[newRow][newCol] != '@';
 
+        // Turn around if blocked
         if (blocked)
         {
             switch (g.direction)
@@ -175,14 +177,29 @@ void MoveGuards(vector<string>& level)
             case '^': newRow--; break;
             case 'v': newRow++; break;
             }
+
+            // If still blocked after turning, don't move
+            if (level[newRow][newCol] != ' ' &&
+                level[newRow][newCol] != '@')
+            {
+                continue;
+            }
         }
 
+        // Guard catches the player
         if (level[newRow][newCol] == '@')
-            continue;
-
-        level[g.row][g.col] = ' ';
-        level[newRow][newCol] = g.direction;
+        {
+            return true;
+        }
+        // Only move if the destination is empty
+        if (level[newRow][newCol] == ' ')
+        {
+            level[g.row][g.col] = ' ';
+            level[newRow][newCol] = g.direction;
+        }
     }
+
+    return false;
 }
 
 void PlayLevel(vector<string> level)
@@ -242,14 +259,19 @@ void PlayLevel(vector<string> level)
         level[playerRow][playerCol] = ' ';
         level[newRow][newCol] = '@';
 
-        MoveGuards(level);
+        if (MoveGuards(level))
+{
+    DisplayLevel(level);
+    cout << "\nMission Failed! A guard caught you!\n";
+    return;
+}
 
-        if (PlayerSeen(level))
-        {
-            DisplayLevel(level);
-            cout << "\nMission Failed! You were spotted!\n";
-            return;
-        }
+if (PlayerSeen(level))
+{
+    DisplayLevel(level);
+    cout << "\nMission Failed! You were spotted!\n";
+    return;
+}
     }
 }
 
@@ -268,31 +290,45 @@ int main()
 
     vector<string> level2 =
     {
-        "###########",
-        "#@        #",
-        "# ######  #",
-        "#      v$ #",
-        "# ######  #",
-        "#         #",
-        "###########"
+        "##########",
+        "#@       #",
+        "# ###### #",
+        "#   >   $#",
+        "# ###### #",
+        "#        #",
+        "##########"
     };
 
-    cout << "Welcome to Ultra-Spy!\n\n";
-    cout << "1) A New Enemy\n";
-    cout << "2) The Truth of the Weapon\n\n";
+    while (true)
+    {
+        cout << "\nWelcome to Ultra-Spy!\n\n";
+        cout << "1) A New Enemy\n";
+        cout << "2) The Truth of the Weapon\n";
+        cout << "3) Quit\n\n";
+        cout << "Choose a level: ";
 
-    string choice;
-    getline(cin, choice);
+        string choice;
+        getline(cin, choice);
+        choice = ToLower(choice);
 
-    choice = ToLower(choice);
-
-    if (choice == "1" || choice == "a new enemy")
-        PlayLevel(level1);
-    else if (choice == "2" || choice == "the truth of the weapon")
-        PlayLevel(level2);
-    else
-        cout << "Invalid selection.\n";
-
+        if (choice == "1" || choice == "a new enemy")
+        {
+            PlayLevel(level1);
+        }
+        else if (choice == "2" || choice == "the truth of the weapon")
+        {
+            PlayLevel(level2);
+        }
+        else if (choice == "3" || choice == "quit" || choice == "q")
+        {
+            cout << "\nThanks for playing Ultra-Spy!\n";
+            break;
+        }
+        else
+        {
+            cout << "\nInvalid selection. Please try again.\n";
+        }
+    }
     return 0;
 }
 
